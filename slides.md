@@ -76,7 +76,7 @@
 
 # Manycore Form Compiler
 
-![placeholder](http://placehold.it/800x360&text=MCFC/Fluidity vs. DOLFIN/FFC)
+![The DOLFIN-FFC and Fluidity-MCFC pipelines side-by-side](images/mcfc_ffc.svg)
 
 * Compile-time code generation, runtime coming soon
 * Generates assembly and marshaling code
@@ -143,13 +143,27 @@ void A_0(double* localTensor, double* dt, double* c0[2], int i_r_0, int i_r_1) {
 
 # MCFC Pipeline
 
-![placeholder](http://placehold.it/400x640&text=MCFC Pipeline)
+![The MCFC execution pipeline](images/mcfc_pipeline.svg)
 
-* **Preprocessing:** transform integrands and spatial derivatives of forms by Jacobian determinant/inverse
-* **Execution:** evaluate preprocessed UFL input in namespace
-* **Form processing:** compute form metadate using UFL algorithms
-* **Partitioning:** segment integrand according to expression depth
-* **Expression generation:** determine integrand subexpression and insert into loop nest
+*   ##Preprocessing
+
+    transform integrands and spatial derivatives of forms by Jacobian determinant/inverse
+
+*   ##Execution
+
+    evaluate preprocessed UFL input in namespace
+
+*   ##Form processing
+
+    compute form metadate using UFL algorithms
+
+*   ##Partitioning
+
+    segment integrand according to expression depth
+
+*   ##Expression generation
+
+    determine integrand subexpression and insert into loop nest
 
 !SLIDE left
 
@@ -198,7 +212,7 @@ for (int i=0; i<3; ++i)       // <- basis functions
 
 # Partitioning
 
-![placeholder](http://placehold.it/800x400&text=Partitioning example: Helmholtz)
+![Partitioning the Helmholtz equation](images/helmholtz_partitioning.svg)
 
 * Generate a subexpression for each partition
 * Insert the subexpression into the loop nest depending on the indices it refers to
