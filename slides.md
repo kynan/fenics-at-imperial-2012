@@ -20,7 +20,7 @@
 
 ### University of Edinburgh
 
-!SLIDE
+!SLIDE huge
 
 # The challenge
 
@@ -53,7 +53,7 @@
 
 ## In combination, they
 
-* raise the level ob abstraction and incorporate domain-specific knowledge
+* raise the level of abstraction and incorporate domain-specific knowledge
 * decouple problem domains from their efficient implementation on different hardware
 * capture design spaces and open optimisation spaces
 * enable reuse of code generation and optimisation expertise and tool chains
