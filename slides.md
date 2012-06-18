@@ -310,3 +310,21 @@ Revision 6739, Tensor representation, CPP optimisations on, form compiler optimi
 !SLIDE
 
 }}} images/mcfc_dolfin_benchmark.png
+
+!SLIDE left
+
+# Resources
+
+## All the code mentioned is open source and available on *GitHub*. Try it!
+
+## Manycore Form Compiler (MCFC)
+<https://github.com/gmarkall/manycore_form_compiler>
+
+## OP2 library
+<https://github.com/OP2/OP2-Common>
+
+## OP2 source-to-source translator
+<https://github.com/OP2/OP2_ROSE_Fortran>
+
+## This talk
+<https://kynan.github.com/fenics-at-imperial-2012>
