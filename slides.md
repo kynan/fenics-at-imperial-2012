@@ -283,3 +283,30 @@ extern "C" void run_model_(double* dt_pointer)
   /* ... clean up */
 }
 @@@
+
+!SLIDE huge
+
+# Preliminary performance results
+
+!SLIDE left
+
+# Experimental setup
+
+##Solver
+CG with Jacobi preconditioning - **Dolfin:** PETSc, **OP2:** PETSc (reference), Cusp (CUDA)
+
+##CPU
+2 x 6 core Intel Xeon E5650 Westmere (HT off), 48GB RAM
+
+##GPU
+Nvidia GTX480
+
+##Mesh
+2D unstructured, 344128 triangles, square domain
+
+##Dolfin
+Revision 6739, Tensor representation, CPP optimisations on, form compiler optimisations off
+
+!SLIDE
+
+}}} images/mcfc_dolfin_benchmark.png
