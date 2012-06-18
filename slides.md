@@ -37,7 +37,7 @@
 ... as the greatest opportunities are at the highest abstraction level
 
 ## Harness the power of DSLs
-... for generative, instead of transformative optimisation
+... for generative, instead of transformative optimisations
 
 !SLIDE left
 
@@ -114,7 +114,7 @@ state.scalar_fields["Tracer"] = solution
 # ... and generates local assembly kernels
 
 ## Helmholtz OP2 kernel
-@@@ c++
+@@@ clike
 void A_0(double* lt, double* dt, double* c0[2], int i_r_0, int i_r_1) {
   /* Shape functions/derivatives, quadrature weights */
   double c_q0[6][2][2];
@@ -270,7 +270,7 @@ for (int i=0; i<3; ++i)       // <- basis functions
 # MCFC generates OP2 "glue code"
 
 ## OP2 host code calling the generated kernels:
-@@@ c++
+@@@ clike
 extern "C" void run_model_(double* dt_pointer)
 {
   /* ... data marshaling */
