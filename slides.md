@@ -58,13 +58,15 @@
 * capture design spaces and open optimisation spaces
 * enable reuse of code generation and optimisation expertise and tool chains
 
-!SLIDE left
+!SLIDE huge
 
-# Active libraries open optimisation spaces
-
-![placeholder](http://placehold.it/1024x600&text=Applications, active libraries, hardware platforms)
+# The big picture
 
 !SLIDE
+
+}}} images/mapdes_abstraction_layers.png
+
+!SLIDE huge
 
 # Higher level abstraction
 
@@ -79,6 +81,63 @@
 * Compile-time code generation, runtime coming soon
 * Generates assembly and marshaling code
 * Designed to handle isoparametric elements
+
+!SLIDE left
+
+# MCFC takes equations in UFL
+
+## Helmholtz equation
+@@@ python
+f = state.scalar_fields["Tracer"]
+
+v=TestFunction(f)
+u=TrialFunction(f)
+
+lmbda = 1
+A = (dot(grad(v),grad(u))-lmbda*v*u)*dx
+
+RHS = v*f*dx
+
+solution = solve(A, RHS)
+state.scalar_fields["Tracer"] = solution
+@@@
+
+!NOTES
+
+## Fluidity extensions
+
+* **`state.scalar_fields`** interfaces to Fluidity: read/write field of given name
+* **`solve`** records equation to be solved and returns `Coefficient` for solution field
+
+!SLIDE left
+
+# ... and generates local assembly kernels
+
+## Helmholtz OP2 kernel
+@@@ c++
+void A_0(double* localTensor, double* dt, double* c0[2], int i_r_0, int i_r_1) {
+  /* Shape functions/derivatives, quadrature weights */
+  double c_q0[6][2][2];
+  /* Evaluate coefficient at quadratur points */
+  for(int i_g = 0; i_g < 6; i_g++) {
+    double ST1 = 0.0;
+    double ST0 = 0.0;
+    double ST2 = 0.0;
+    ST1 += -1 * CG1[i_r_0][i_g] * CG1[i_r_1][i_g];
+    double l95[2][2] = { { c_q0[i_g][1][1], -1 * c_q0[i_g][0][1] }, { -1 * c_q0[i_g][1][0], c_q0[i_g][0][0] } };
+    double l35[2][2] = { { c_q0[i_g][1][1], -1 * c_q0[i_g][0][1] }, { -1 * c_q0[i_g][1][0], c_q0[i_g][0][0] } };
+    ST2 += c_q0[i_g][0][0] * c_q0[i_g][1][1] + -1 * c_q0[i_g][0][1] * c_q0[i_g][1][0];
+    for(int i_d_5 = 0; i_d_5 < 2; i_d_5++) {
+      for(int i_d_3 = 0; i_d_3 < 2; i_d_3++) {
+        for(int i_d_9 = 0; i_d_9 < 2; i_d_9++) {
+          ST0 += (l35[i_d_3][i_d_5] / (c_q0[i_g][0][0] * c_q0[i_g][1][1] + -1 * c_q0[i_g][0][1] * c_q0[i_g][1][0])) * d_CG1[i_r_0][i_g][i_d_3] * (l95[i_d_9][i_d_5] / (c_q0[i_g][0][0] * c_q0[i_g][1][1] + -1 * c_q0[i_g][0][1] * c_q0[i_g][1][0])) * d_CG1[i_r_1][i_g][i_d_9];
+        }
+      }
+    }
+    localTensor[0] += ST2 * (ST0 + ST1) * w[i_g];
+  }
+}
+@@@
 
 !SLIDE left float
 
@@ -145,7 +204,7 @@ for (int i=0; i<3; ++i)       // <- basis functions
 * Insert the subexpression into the loop nest depending on the indices it refers to
 * Traverse the topmost expression of the form, and generate an expression that combines subexpressions, and insert into loop nest
 
-!SLIDE
+!SLIDE huge
 
 # Lower level abstraction
 
@@ -159,143 +218,38 @@ for (int i=0; i<3; ++i)       // <- basis functions
 
 * **Sets** of entities (e.g. nodes, edges, faces)
 * **Mappings** between sets (e.g. from edges to nodes)
-* **Datasets** holding data on a set (i.e. a field in finite element terms)
+* **Datasets** holding data on a set (i.e. fields in finite-element terms)
 
 ## Mesh computations as parallel loops
 
 * execute a *kernel* for all members of one set in arbitrary order
 * datasets accessed through at most one level of indirection
-* access descriptors specify which data is passed to the kernel and how it is addressed
-* partioning and colouring for efficient scheduling and execution on different hardware architectures (CUDA/OpenMP + MPI)
+* *access descriptors* specify which data is passed to the kernel and how it is addressed
+
+## Multiple hardware backends via *source-to-source translation*
+
+* partioning/colouring for efficient scheduling and execution on different hardware
+* currently supports CUDA/OpenMP + MPI - OpenCL, AVX support planned
 
 !SLIDE left
 
-# Why OP2 for finite element computations?
+# OP2 for finite element computations
 
 ## Finite element local assembly
 ... means computing the *same kernel* for *every* mesh entity (cell, facet)
 
-## OP2 abstracts away the matrix representation
-* matrix is a dataset with a pair of associated maps for rows and columns of the matrix resp.
-* controls whether/how/when the matrix is assembled
-* takes care of efficient execution of  the local assembly kernel
+## OP2 abstracts away data marshaling and parallel execution
+* controls whether/how/when a matrix is assembled
+* OP2 has the choice: assemble a sparse (CSR) matrix, or keep the local assembly matrices (local matrix approach, LMA)
+* local assembly kernel is *translated* for and *efficiently executed* on the target architecture
 
 ## Global asssembly and linear algebra operations
-... implemented as a thin wrapper on top of backend-specific linear algebra packages:
-PETSc on the CPU, Cusp on the GPU
-
-OP2 has the choice: assemble a sparse (CSR) matrix or keep the local assembly matrices (local matrix approach, LMA)
-
-!SLIDE
-
-# Chaining the tools together
-
-## From the equation to performance portable code for different hardware architectures
+... implemented as a thin wrapper on top of backend-specific linear algebra packages:  
+*PETSc* on the CPU, *Cusp* on the GPU
 
 !SLIDE left
 
-# MCFC takes equations in a UFL "dialect"
-
-## Helmholtz equation
-@@@ python
-f = state.scalar_fields["Tracer"]
-
-v=TestFunction(f)
-u=TrialFunction(f)
-
-lmbda = 1
-A = (dot(grad(v),grad(u))-lmbda*v*u)*dx
-
-RHS = v*f*dx
-
-solution = solve(A, RHS)
-state.scalar_fields["Tracer"] = solution
-@@@
-
-## UFL extensions
-
-* **`state.scalar_fields`** interfaces to Fluidity: read/write field of given name
-* **`solve`** records equation to be solved and returns `Coefficient` for solution field
-
-!NOTES
-
-@@@ python
-t = state.scalar_fields["Tracer"]
-v = TestFunction(t)
-u = TrialFunction(t)
-a = v*u*dx
-L = v*t*dx
-new_t = solve(a, L)
-state.scalar_fields["Tracer"] = new_t
-@@@
-
-!SLIDE left
-
-# ... and generates local assembly kernels
-
-## Helmholtz OP2 kernel
-@@@ c++
-void A_0(double* localTensor, double* dt, double* c0[2], int i_r_0, int i_r_1) {
-  /* Shape functions/derivatives, quadrature weights */
-  double c_q0[6][2][2];
-  /* Evaluate coefficient at quadratur points */
-  for(int i_g = 0; i_g < 6; i_g++) {
-    double ST1 = 0.0;
-    double ST0 = 0.0;
-    double ST2 = 0.0;
-    ST1 += -1 * CG1[i_r_0][i_g] * CG1[i_r_1][i_g];
-    double l95[2][2] = { { c_q0[i_g][1][1], -1 * c_q0[i_g][0][1] }, { -1 * c_q0[i_g][1][0], c_q0[i_g][0][0] } };
-    double l35[2][2] = { { c_q0[i_g][1][1], -1 * c_q0[i_g][0][1] }, { -1 * c_q0[i_g][1][0], c_q0[i_g][0][0] } };
-    ST2 += c_q0[i_g][0][0] * c_q0[i_g][1][1] + -1 * c_q0[i_g][0][1] * c_q0[i_g][1][0];
-    for(int i_d_5 = 0; i_d_5 < 2; i_d_5++) {
-      for(int i_d_3 = 0; i_d_3 < 2; i_d_3++) {
-        for(int i_d_9 = 0; i_d_9 < 2; i_d_9++) {
-          ST0 += (l35[i_d_3][i_d_5] / (c_q0[i_g][0][0] * c_q0[i_g][1][1] + -1 * c_q0[i_g][0][1] * c_q0[i_g][1][0])) * d_CG1[i_r_0][i_g][i_d_3] * (l95[i_d_9][i_d_5] / (c_q0[i_g][0][0] * c_q0[i_g][1][1] + -1 * c_q0[i_g][0][1] * c_q0[i_g][1][0])) * d_CG1[i_r_1][i_g][i_d_9];
-        }
-      }
-    }
-    localTensor[0] += ST2 * (ST0 + ST1) * w[i_g];
-  }
-}
-@@@
-
-!NOTES
-
-@@@ c++
-void mass(double* localTensor, double* c0[2], int i_r_0, int i_r_1)
-{
-  const double CG1[3][6] = { ... };
-  const double d_CG1[3][6][2] = { ... };
-  const double w[6] = { ... };
-  double c_q0[6][2][2];
-  for(int i_g = 0; i_g < 6; i_g++)
-  {
-    for(int i_d_0 = 0; i_d_0 < 2; i_d_0++)
-    {
-      for(int i_d_1 = 0; i_d_1 < 2; i_d_1++)
-      {
-        c_q0[i_g][i_d_0][i_d_1] = 0.0;
-        for(int q_r_0 = 0; q_r_0 < 3; q_r_0++)
-        {
-          c_q0[i_g][i_d_0][i_d_1] += c0[q_r_0][i_d_0] * d_CG1[q_r_0][i_g][i_d_1];
-        };
-      };
-    };
-  };
-  for(int i_g = 0; i_g < 6; i_g++)
-  {
-    double ST0 = 0.0;
-    ST0 += CG1[i_r_0][i_g] * CG1[i_r_1][i_g]
-           * (c_q0[i_g][0][0] * c_q0[i_g][1][1]
-               + -1 * c_q0[i_g][0][1] * c_q0[i_g][1][0]);
-    localTensor[0] += ST0 * w[i_g];
-  };
-}
-@@@
-
-!SLIDE left
-
-# ... and OP2 "glue code" to run the model
+# MCFC generates OP2 "glue code"
 
 @@@ c++
 extern "C" void run_model_(double* dt_pointer)
@@ -325,13 +279,3 @@ extern "C" void run_model_(double* dt_pointer)
   op_free_mat(A_mat);
 }
 @@@
-
-!SLIDE
-
-# Conclusion
-
-## The MAPDES vision
-
-!SLIDE left
-
-}}} images/mapdes_abstraction_layers.png
