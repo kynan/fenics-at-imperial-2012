@@ -1,0 +1,41 @@
+/* Custom CSS for your KeyDown presentation here */
+/* Uncomment to turn off deck.js status */
+/*.deck-status {*/
+/*display: none;*/
+/*}*/
+.keydown.deck-container {
+  /* Uncomment to turn off deck.js navigation */
+  /* Background to fit the parent and not repeat */ }
+  .keydown.deck-container p, .keydown.deck-container li {
+    font-size: .8em; }
+  .keydown.deck-container .deck-prev-link,
+  .keydown.deck-container .deck-next-link {
+    display: none; }
+  .keydown.deck-container h1 {
+    font-size: 1.75em; }
+  .keydown.deck-container h2 {
+    font-size: 1.25em; }
+  .keydown.deck-container h3 {
+    font-size: 1em; }
+  .keydown.deck-container .slide.huge h1 {
+    font-size: 3.5em; }
+  .keydown.deck-container .slide.huge h2 {
+    font-size: 2.5em; }
+  .keydown.deck-container .slide.huge h3 {
+    font-size: 2em; }
+  .keydown.deck-container .slide.full-background {
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center; }
+  .keydown.deck-container .slide.float.left div.content {
+    display: block; }
+  .keydown.deck-container .slide.float.left p {
+    float: left; }
+  .keydown.deck-container .slide.float.left ul, .keydown.deck-container .slide.float.left li {
+    margin-left: 2em; }
+  .keydown.deck-container .slide.float.right div.content {
+    display: block; }
+  .keydown.deck-container .slide.float.right p {
+    float: right; }
+  .keydown.deck-container .slide.float.right ul, .keydown.deck-container .slide.float.right li {
+    margin-right: 2em; }
