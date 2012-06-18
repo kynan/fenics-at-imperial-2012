@@ -115,26 +115,30 @@ state.scalar_fields["Tracer"] = solution
 
 ## Helmholtz OP2 kernel
 @@@ c++
-void A_0(double* localTensor, double* dt, double* c0[2], int i_r_0, int i_r_1) {
+void A_0(double* lt, double* dt, double* c0[2], int i_r_0, int i_r_1) {
   /* Shape functions/derivatives, quadrature weights */
   double c_q0[6][2][2];
-  /* Evaluate coefficient at quadratur points */
+  /* Evaluate coefficients at quadrature points */
   for(int i_g = 0; i_g < 6; i_g++) {
-    double ST1 = 0.0;
-    double ST0 = 0.0;
-    double ST2 = 0.0;
+    double ST1 = 0.0, ST0 = 0.0, ST2 = 0.0;
     ST1 += -1 * CG1[i_r_0][i_g] * CG1[i_r_1][i_g];
-    double l95[2][2] = { { c_q0[i_g][1][1], -1 * c_q0[i_g][0][1] }, { -1 * c_q0[i_g][1][0], c_q0[i_g][0][0] } };
-    double l35[2][2] = { { c_q0[i_g][1][1], -1 * c_q0[i_g][0][1] }, { -1 * c_q0[i_g][1][0], c_q0[i_g][0][0] } };
-    ST2 += c_q0[i_g][0][0] * c_q0[i_g][1][1] + -1 * c_q0[i_g][0][1] * c_q0[i_g][1][0];
+    double l95[2][2] = { { c_q0[i_g][1][1], -1 * c_q0[i_g][0][1] },
+                         { -1 * c_q0[i_g][1][0], c_q0[i_g][0][0] } };
+    ST2 += c_q0[i_g][0][0] * c_q0[i_g][1][1]
+            + -1 * c_q0[i_g][0][1] * c_q0[i_g][1][0];
     for(int i_d_5 = 0; i_d_5 < 2; i_d_5++) {
       for(int i_d_3 = 0; i_d_3 < 2; i_d_3++) {
         for(int i_d_9 = 0; i_d_9 < 2; i_d_9++) {
-          ST0 += (l35[i_d_3][i_d_5] / (c_q0[i_g][0][0] * c_q0[i_g][1][1] + -1 * c_q0[i_g][0][1] * c_q0[i_g][1][0])) * d_CG1[i_r_0][i_g][i_d_3] * (l95[i_d_9][i_d_5] / (c_q0[i_g][0][0] * c_q0[i_g][1][1] + -1 * c_q0[i_g][0][1] * c_q0[i_g][1][0])) * d_CG1[i_r_1][i_g][i_d_9];
+          ST0 += (l95[i_d_3][i_d_5]
+            / (c_q0[i_g][0][0] * c_q0[i_g][1][1] + -1 * c_q0[i_g][0][1]
+                * c_q0[i_g][1][0])) * d_CG1[i_r_0][i_g][i_d_3]
+                * (l95[i_d_9][i_d_5] / (c_q0[i_g][0][0] * c_q0[i_g][1][1]
+                   + -1 * c_q0[i_g][0][1] * c_q0[i_g][1][0]))
+               * d_CG1[i_r_1][i_g][i_d_9];
         }
       }
     }
-    localTensor[0] += ST2 * (ST0 + ST1) * w[i_g];
+    lt[0] += ST2 * (ST0 + ST1) * w[i_g];
   }
 }
 @@@
