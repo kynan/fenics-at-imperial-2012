@@ -265,31 +265,21 @@ for (int i=0; i<3; ++i)       // <- basis functions
 
 # MCFC generates OP2 "glue code"
 
+## OP2 host code calling the generated kernels:
 @@@ c++
 extern "C" void run_model_(double* dt_pointer)
 {
-  void* state = get_state();
-  op_field_struct Coordinate = extract_op_vector_field(state, "Coordinate", 10, 0);
-  op_field_struct Tracer = extract_op_scalar_field(state, "Tracer", 6, 0);
-  op_sparsity A_sparsity = op_decl_sparsity(Tracer.map, Tracer.map, "A_sparsity");
-  op_mat A_mat = op_decl_mat(A_sparsity, Tracer.dat->dim, "double", 8, "A_mat");
+  /* ... data marshaling */
+  op_sparsity A_sparsity = op_decl_sparsity( /* ... */ );
+  op_mat A_mat = op_decl_mat(A_sparsity,  /* ... */ );
   op_par_loop(A_0, "A_0", op_iteration_space(Tracer.map->from, 3, 3),
               op_arg_mat(A_mat, OP_ALL, Tracer.map, OP_ALL, Tracer.map,
                          Tracer.dat->dim, "double", OP_INC),
               op_arg_gbl(dt_pointer, 1, "double", OP_INC),
               op_arg_dat(Coordinate.dat, OP_ALL, Coordinate.map,
                          Coordinate.dat->dim, "double", OP_READ));
-  op_dat RHS_vec = op_decl_vec(Tracer.dat, "RHS_vec");
-  op_par_loop(RHS_0, "RHS_0", Tracer.map->from,
-              op_arg_dat(RHS_vec, OP_ALL, Tracer.map, Tracer.dat->dim,
-                         "double", OP_INC),
-              op_arg_gbl(dt_pointer, 1, "double", OP_INC),
-              op_arg_dat(Coordinate.dat, OP_ALL, Coordinate.map,
-                         Coordinate.dat->dim, "double", OP_READ),
-              op_arg_dat(Tracer.dat, OP_ALL, Tracer.map, Tracer.dat->dim,
-                         "double", OP_READ));
+  /* ... similar for the right-hand side */
   op_solve(A_mat, RHS_vec, Tracer.dat);
-  op_free_vec(RHS_vec);
-  op_free_mat(A_mat);
+  /* ... clean up */
 }
 @@@
